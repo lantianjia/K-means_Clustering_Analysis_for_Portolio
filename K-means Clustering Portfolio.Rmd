@@ -1,0 +1,693 @@
+---
+title: "Using the K-means Clustering Analysis for A Unleveraged Portfolio"
+---
+
+# Clean Data
+### Loading data
+```{r}
+setwd('/Users/PROJECT')
+library('readxl')
+Energy <- read_excel("Project_data1.xlsx", sheet = 1, col_names = T, col_types = NULL, na = "", skip = 0)
+Materials <- read_excel("Project_data1.xlsx", sheet = 2, col_names = T, col_types = NULL, na = "", skip = 0)
+Industrials <- read_excel("Project_data1.xlsx", sheet = 3, col_names = T, col_types = NULL, na = "", skip = 0)
+ConsumerDiscretionary <- read_excel("Project_data1.xlsx", sheet = 4, col_names = T, col_types = NULL, na = "", skip = 0)
+ConsumerStaples <- read_excel("Project_data1.xlsx", sheet = 5, col_names = T, col_types = NULL, na = "", skip = 0)
+HealthCare <- read_excel("Project_data1.xlsx", sheet = 6, col_names = T, col_types = NULL, na = "", skip = 0)
+Financials <- read_excel("Project_data1.xlsx", sheet = 7, col_names = T, col_types = NULL, na = "", skip = 0)
+InformationTechnology <- read_excel("Project_data1.xlsx", sheet = 8, col_names = T, col_types = NULL, na = "", skip = 0)
+CommunicationService <- read_excel("Project_data1.xlsx", sheet = 9, col_names = T, col_types = NULL, na = "", skip = 0)
+Utilities <- read_excel("Project_data1.xlsx", sheet = 10, col_names = T, col_types = NULL, na = "", skip = 0)
+RealEstate <- read_excel("Project_data1.xlsx", sheet = 11, col_names = T, col_types = NULL, na = "", skip = 0)
+```
+
+### Calculate PEG
+```{r}
+NPGrowth <- function(df){
+  df$NPGrowth <- (df$NP_L - df$NP_F) / df$NP_F
+  return(df)
+}
+
+PEG <- function(df){
+  df$PEG <- df$PE_Rolling / df$NPGrowth
+  return(df)
+}
+
+Energy <- PEG(NPGrowth(Energy))
+Materials <- PEG(NPGrowth(Materials))
+Industrials <- PEG(NPGrowth(Industrials))
+ConsumerDiscretionary <- PEG(NPGrowth(ConsumerDiscretionary))
+ConsumerStaples <- PEG(NPGrowth(ConsumerStaples))
+HealthCare <- PEG(NPGrowth(HealthCare))
+Financials <- PEG(NPGrowth(Financials))
+InformationTechnology <- PEG(NPGrowth(InformationTechnology))
+CommunicationService <- PEG(NPGrowth(CommunicationService))
+Utilities <- PEG(NPGrowth(Utilities))
+RealEstate <- PEG(NPGrowth(RealEstate))
+```
+
+### Calculate Sharpe Average
+```{r}
+SharpeAvg <- function(df){
+  df <- mean(df$Sharpe)
+  return(df)
+}
+
+EnergySharpe <- SharpeAvg(Energy)
+MaterialsSharpe <- SharpeAvg(Materials)
+IndustrialsSharpe <- SharpeAvg(Industrials)
+ConsumerDiscretionarySharpe <- SharpeAvg(ConsumerDiscretionary)
+ConsumerStaplesSharpe <- SharpeAvg(ConsumerStaples)
+HealthCareSharpe <- SharpeAvg(HealthCare)
+FinancialsSharpe <- SharpeAvg(Financials)
+InformationTechnologySharpe <- SharpeAvg(InformationTechnology)
+CommunicationServiceSharpe <- SharpeAvg(CommunicationService)
+UtilitiesSharpe <- SharpeAvg(Utilities)
+RealEstateSharpe <- SharpeAvg(RealEstate)
+```
+
+### Calculate SPGrowthAvg
+```{r}
+SPGrowthAvg <- function(df){
+  df <- mean(df$SPGrowth)
+  return(df)
+}
+
+EnergySPGrowth <- SPGrowthAvg(Energy)
+MaterialsSPGrowth <- SPGrowthAvg(Materials)
+IndustrialsSPGrowth <- SPGrowthAvg(Industrials)
+ConsumerDiscretionarySPGrowth <- SPGrowthAvg(ConsumerDiscretionary)
+ConsumerStaplesSPGrowth <- SPGrowthAvg(ConsumerStaples)
+HealthCareSPGrowth <- SPGrowthAvg(HealthCare)
+FinancialsSPGrowth <- SPGrowthAvg(Financials)
+InformationTechnologySPGrowth <- SPGrowthAvg(InformationTechnology)
+CommunicationServiceSPGrowth <- SPGrowthAvg(CommunicationService)
+UtilitiesSPGrowth <- SPGrowthAvg(Utilities)
+RealEstateSPGrowth <- SPGrowthAvg(RealEstate)
+```
+
+### Calculate PEG Average
+```{r}
+PEGAvg <- function(df){
+  df1 <- df$PEG[!is.nan(df$PEG)]
+  df2 <- df1[!is.infinite(df1)]
+  df <- mean(df2,na.rm=TRUE)
+  return(df)
+}
+
+EnergyPEG <- PEGAvg(Energy)
+MaterialsPEG <- PEGAvg(Materials)
+IndustrialsPEG <- PEGAvg(Industrials)
+ConsumerDiscretionaryPEG <- PEGAvg(ConsumerDiscretionary)
+ConsumerStaplesPEG <- PEGAvg(ConsumerStaples)
+HealthCarePEG <- PEGAvg(HealthCare)
+FinancialsPEG <- PEGAvg(Financials)
+InformationTechnologyPEG <- PEGAvg(InformationTechnology)
+CommunicationServicePEG <- PEGAvg(CommunicationService)
+UtilitiesPEG <- PEGAvg(Utilities)
+RealEstatePEG <- PEGAvg(RealEstate)
+```
+
+### Create SumIndustry Table
+```{r}
+Industry <- c('Energy', 'Materials', 'Industrials', 'ConsumerDiscretionary', 'ConsumerStaples', 'HealthCare',
+              'Financials', 'InformationTechnology', 'CommunicationService', 'Utilities', 'RealEstate')
+
+SharpeAvg <- c(EnergySharpe,
+               MaterialsSharpe,
+               IndustrialsSharpe,
+               ConsumerDiscretionarySharpe,
+               ConsumerStaplesSharpe,
+               HealthCareSharpe,
+               FinancialsSharpe,
+               InformationTechnologySharpe,
+               CommunicationServiceSharpe,
+               UtilitiesSharpe,
+               RealEstateSharpe)
+
+SPGrowthAvg <- c(EnergySPGrowth,
+                 MaterialsSPGrowth ,
+                 IndustrialsSPGrowth,
+                 ConsumerDiscretionarySPGrowth,
+                 ConsumerStaplesSPGrowth,
+                 HealthCareSPGrowth,
+                 FinancialsSPGrowth ,
+                 InformationTechnologySPGrowth,
+                 CommunicationServiceSPGrowth,
+                 UtilitiesSPGrowth,
+                 RealEstateSPGrowth)
+
+PEGAvg <- c(EnergyPEG,
+            MaterialsPEG,
+            IndustrialsPEG,
+            ConsumerDiscretionaryPEG,
+            ConsumerStaplesPEG,
+            HealthCarePEG,
+            FinancialsPEG,
+            InformationTechnologyPEG,
+            CommunicationServicePEG,
+            UtilitiesPEG,
+            RealEstatePEG)
+
+SumIndustry <- data.frame(Industry = Industry, SharpeAvg = SharpeAvg, SPGrowthAvg = SPGrowthAvg, PEGAvg = PEGAvg)
+```
+
+# Correlation Analysis
+### Create Table
+```{r}
+SP2009 <- function(df){
+  df$Time <- as.character(df$Time)
+  mean(df$SP[df$Time == '2009-12-31'])
+}
+
+SP2010 <- function(df){
+  df$Time <- as.character(df$Time)
+  mean(df$SP[df$Time == '2010-12-31'])
+}
+
+SP2011 <- function(df){
+  df$Time <- as.character(df$Time)
+  mean(df$SP[df$Time == '2011-12-31'])
+}
+
+SP2012 <- function(df){
+  df$Time <- as.character(df$Time)
+  mean(df$SP[df$Time == '2012-12-31'])
+}
+
+SP2013 <- function(df){
+  df$Time <- as.character(df$Time)
+  mean(df$SP[df$Time == '2013-12-31'])
+}
+
+SP2014 <- function(df){
+  df$Time <- as.character(df$Time)
+  mean(df$SP[df$Time == '2014-12-31'])
+}
+
+SP2009 <- function(df){
+  df$Time <- as.character(df$Time)
+  mean(df$SP[df$Time == '2009-12-31'])
+}
+
+SP2015 <- function(df){
+  df$Time <- as.character(df$Time)
+  mean(df$SP[df$Time == '2015-12-31'])
+}
+
+SP2016 <- function(df){
+  df$Time <- as.character(df$Time)
+  mean(df$SP[df$Time == '2016-12-31'])
+}
+
+SP2017 <- function(df){
+  df$Time <- as.character(df$Time)
+  mean(df$SP[df$Time == '2017-12-31'])
+}
+
+SP2018 <- function(df){
+  df$Time <- as.character(df$Time)
+  mean(df$SP[df$Time == '2018-12-31'])
+}
+
+
+
+SP2009Energy <- SP2009(Energy)
+SP2010Energy <- SP2010(Energy)
+SP2011Energy <- SP2011(Energy)
+SP2012Energy <- SP2012(Energy)
+SP2013Energy <- SP2013(Energy)
+SP2014Energy <- SP2014(Energy)
+SP2015Energy <- SP2015(Energy)
+SP2016Energy <- SP2016(Energy)
+SP2017Energy <- SP2017(Energy)
+SP2018Energy <- SP2018(Energy)
+
+SP2009Materials <- SP2009(Materials)
+SP2010Materials <- SP2010(Materials)
+SP2011Materials <- SP2011(Materials)
+SP2012Materials <- SP2012(Materials)
+SP2013Materials <- SP2013(Materials)
+SP2014Materials <- SP2014(Materials)
+SP2015Materials <- SP2015(Materials)
+SP2016Materials <- SP2016(Materials)
+SP2017Materials <- SP2017(Materials)
+SP2018Materials <- SP2018(Materials)
+
+SP2009Industrials <- SP2009(Industrials)
+SP2010Industrials <- SP2010(Industrials)
+SP2011Industrials <- SP2011(Industrials)
+SP2012Industrials <- SP2012(Industrials)
+SP2013Industrials <- SP2013(Industrials)
+SP2014Industrials <- SP2014(Industrials)
+SP2015Industrials <- SP2015(Industrials)
+SP2016Industrials <- SP2016(Industrials)
+SP2017Industrials <- SP2017(Industrials)
+SP2018Industrials <- SP2018(Industrials)
+
+SP2009ConsumerDiscretionary <- SP2009(ConsumerDiscretionary)
+SP2010ConsumerDiscretionary <- SP2010(ConsumerDiscretionary)
+SP2011ConsumerDiscretionary <- SP2011(ConsumerDiscretionary)
+SP2012ConsumerDiscretionary <- SP2012(ConsumerDiscretionary)
+SP2013ConsumerDiscretionary <- SP2013(ConsumerDiscretionary)
+SP2014ConsumerDiscretionary <- SP2014(ConsumerDiscretionary)
+SP2015ConsumerDiscretionary <- SP2015(ConsumerDiscretionary)
+SP2016ConsumerDiscretionary <- SP2016(ConsumerDiscretionary)
+SP2017ConsumerDiscretionary <- SP2017(ConsumerDiscretionary)
+SP2018ConsumerDiscretionary <- SP2018(ConsumerDiscretionary)
+
+SP2009ConsumerStaples <- SP2009(ConsumerStaples)
+SP2010ConsumerStaples <- SP2010(ConsumerStaples)
+SP2011ConsumerStaples <- SP2011(ConsumerStaples)
+SP2012ConsumerStaples <- SP2012(ConsumerStaples)
+SP2013ConsumerStaples <- SP2013(ConsumerStaples)
+SP2014ConsumerStaples <- SP2014(ConsumerStaples)
+SP2015ConsumerStaples <- SP2015(ConsumerStaples)
+SP2016ConsumerStaples <- SP2016(ConsumerStaples)
+SP2017ConsumerStaples <- SP2017(ConsumerStaples)
+SP2018ConsumerStaples <- SP2018(ConsumerStaples)
+
+SP2009HealthCare <- SP2009(HealthCare)
+SP2010HealthCare <- SP2010(HealthCare)
+SP2011HealthCare <- SP2011(HealthCare)
+SP2012HealthCare <- SP2012(HealthCare)
+SP2013HealthCare <- SP2013(HealthCare)
+SP2014HealthCare <- SP2014(HealthCare)
+SP2015HealthCare <- SP2015(HealthCare)
+SP2016HealthCare <- SP2016(HealthCare)
+SP2017HealthCare <- SP2017(HealthCare)
+SP2018HealthCare <- SP2018(HealthCare)
+
+SP2009Financials <- SP2009(Financials)
+SP2010Financials <- SP2010(Financials)
+SP2011Financials <- SP2011(Financials)
+SP2012Financials <- SP2012(Financials)
+SP2013Financials <- SP2013(Financials)
+SP2014Financials <- SP2014(Financials)
+SP2015Financials <- SP2015(Financials)
+SP2016Financials <- SP2016(Financials)
+SP2017Financials <- SP2017(Financials)
+SP2018Financials <- SP2018(Financials)
+
+SP2009InformationTechnology <- SP2009(InformationTechnology)
+SP2010InformationTechnology <- SP2010(InformationTechnology)
+SP2011InformationTechnology <- SP2011(InformationTechnology)
+SP2012InformationTechnology <- SP2012(InformationTechnology)
+SP2013InformationTechnology <- SP2013(InformationTechnology)
+SP2014InformationTechnology <- SP2014(InformationTechnology)
+SP2015InformationTechnology <- SP2015(InformationTechnology)
+SP2016InformationTechnology <- SP2016(InformationTechnology)
+SP2017InformationTechnology <- SP2017(InformationTechnology)
+SP2018InformationTechnology <- SP2018(InformationTechnology)
+
+SP2009CommunicationService <- SP2009(CommunicationService)
+SP2010CommunicationService <- SP2010(CommunicationService)
+SP2011CommunicationService <- SP2011(CommunicationService)
+SP2012CommunicationService <- SP2012(CommunicationService)
+SP2013CommunicationService <- SP2013(CommunicationService)
+SP2014CommunicationService <- SP2014(CommunicationService)
+SP2015CommunicationService <- SP2015(CommunicationService)
+SP2016CommunicationService <- SP2016(CommunicationService)
+SP2017CommunicationService <- SP2017(CommunicationService)
+SP2018CommunicationService <- SP2018(CommunicationService)
+
+SP2009Utilities <- SP2009(Utilities)
+SP2010Utilities <- SP2010(Utilities)
+SP2011Utilities <- SP2011(Utilities)
+SP2012Utilities <- SP2012(Utilities)
+SP2013Utilities <- SP2013(Utilities)
+SP2014Utilities <- SP2014(Utilities)
+SP2015Utilities <- SP2015(Utilities)
+SP2016Utilities <- SP2016(Utilities)
+SP2017Utilities <- SP2017(Utilities)
+SP2018Utilities <- SP2018(Utilities)
+
+SP2009RealEstate <- SP2009(RealEstate)
+SP2010RealEstate <- SP2010(RealEstate)
+SP2011RealEstate <- SP2011(RealEstate)
+SP2012RealEstate <- SP2012(RealEstate)
+SP2013RealEstate <- SP2013(RealEstate)
+SP2014RealEstate <- SP2014(RealEstate)
+SP2015RealEstate <- SP2015(RealEstate)
+SP2016RealEstate <- SP2016(RealEstate)
+SP2017RealEstate <- SP2017(RealEstate)
+SP2018RealEstate <- SP2018(RealEstate)
+
+Year <- c('2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018')
+
+Energy <- c(SP2009Energy, SP2010Energy, SP2011Energy, SP2012Energy, SP2013Energy, 
+            SP2014Energy, SP2015Energy, SP2016Energy, SP2017Energy, SP2018Energy)
+
+Materials <- c(SP2009Materials, SP2010Materials, SP2011Materials, SP2012Materials, SP2013Materials,
+               SP2014Materials, SP2015Materials, SP2016Materials, SP2017Materials, SP2018Materials)
+
+Industrials <- c(SP2009Industrials, SP2010Industrials, SP2011Industrials, SP2012Industrials, SP2013Industrials, 
+                 SP2014Industrials, SP2015Industrials, SP2016Industrials, SP2017Industrials, SP2018Industrials)
+
+ConsumerDiscretionary <- c(SP2009ConsumerDiscretionary, SP2010ConsumerDiscretionary, SP2011ConsumerDiscretionary,
+                           SP2012ConsumerDiscretionary, SP2013ConsumerDiscretionary, SP2014ConsumerDiscretionary, 
+                           SP2015ConsumerDiscretionary, SP2016ConsumerDiscretionary, SP2017ConsumerDiscretionary, 
+                           SP2018ConsumerDiscretionary)
+
+ConsumerStaples <- c(SP2009ConsumerStaples, SP2010ConsumerStaples, SP2011ConsumerStaples, SP2012ConsumerStaples, 
+                     SP2013ConsumerStaples, SP2014ConsumerStaples, SP2015ConsumerStaples, SP2016ConsumerStaples, 
+                     SP2017ConsumerStaples, SP2018ConsumerStaples)
+
+HealthCare <- c(SP2009HealthCare, SP2010HealthCare, SP2011HealthCare, SP2012HealthCare, SP2013HealthCare, 
+                SP2014HealthCare, SP2015HealthCare, SP2016HealthCare, SP2017HealthCare, SP2018HealthCare)
+
+Financials <- c(SP2009Financials, SP2010Financials, SP2011Financials, SP2012Financials, SP2013Financials, 
+                SP2014Financials, SP2015Financials, SP2016Financials, SP2017Financials, SP2018Financials)
+
+InformationTechnology <- c(SP2009InformationTechnology, SP2010InformationTechnology, SP2011InformationTechnology, SP2012InformationTechnology, 
+                           SP2013InformationTechnology, SP2014InformationTechnology, SP2015InformationTechnology, SP2016InformationTechnology, 
+                           SP2017InformationTechnology, SP2018InformationTechnology)
+
+CommunicationService <- c(SP2009CommunicationService, SP2010CommunicationService, SP2011CommunicationService, SP2012CommunicationService, 
+                          SP2013CommunicationService, SP2014CommunicationService, SP2015CommunicationService, SP2016CommunicationService, 
+                          SP2017CommunicationService, SP2018CommunicationService)
+
+Utilities <- c(SP2009Utilities, SP2010Utilities, SP2011Utilities, SP2012Utilities, SP2013Utilities, 
+               SP2014Utilities, SP2015Utilities, SP2016Utilities, SP2017Utilities, SP2018Utilities)
+
+RealEstate <- c(SP2009RealEstate, SP2010RealEstate, SP2011RealEstate, SP2012RealEstate, SP2013RealEstate, 
+                SP2014RealEstate, SP2015RealEstate, SP2016RealEstate, SP2017RealEstate, SP2018RealEstate)
+
+IndustryTable <- data.frame(Year = Year, Energy = Energy, Materials = Materials, Industrials = Industrials, 
+                            ConsumerDiscretionary = ConsumerDiscretionary, ConsumerStaples = ConsumerStaples, 
+                            HealthCare = HealthCare, Financials = Financials,
+                            InformationTechnology = InformationTechnology, CommunicationService = CommunicationService, 
+                            Utilities = Utilities, RealEstate = RealEstate)
+```
+
+### Convert to matrix
+```{r}
+IndustryMatrix <- matrix(nrow = 10, ncol = 11)
+for (i in 1:11){
+  IndustryMatrix[,i] <- IndustryTable[,i+1]
+}
+colnames(IndustryMatrix) <- c('Energy', 'Materials', 'Industrials', 'ConsumerDiscretionary', 'ConsumerStaples', 'HealthCare',
+                              'Financials', 'InformationTechnology', 'CommunicationService', 'Utilities', 'RealEstate')
+```
+
+### Generate Correlation Chart1
+```{r}
+library(psych)
+library(corrplot)
+corr.test(IndustryMatrix, use = "complete", method = "pearson", adjust = "none")
+res_cor <- cor(IndustryMatrix)
+corrplot(corr = res_cor)
+```
+
+### Generate Correlation Chart2
+```{r}
+library(PerformanceAnalytics)
+chart.Correlation(IndustryMatrix, method = "pearson")
+```
+
+
+# Clean Data
+### Loading data
+```{r}
+setwd('/Users/jialantian/Desktop/FE 582/PROJECT')
+library('readxl')
+Financials <- read_excel("Project_data2.xlsx", sheet = 1, col_names = T, col_types = NULL, na = "", skip = 0)
+ConsumerDiscretionary <- read_excel("Project_data2.xlsx", sheet = 1, col_names = T, col_types = NULL, na = "", skip = 0)
+InformationTechnology <- read_excel("Project_data2.xlsx", sheet = 1, col_names = T, col_types = NULL, na = "", skip = 0)
+Energy <- read_excel("Project_data2.xlsx", sheet = 1, col_names = T, col_types = NULL, na = "", skip = 0)
+```
+
+### Clean data
+```{r}
+SP <- function(df){
+  df$Time <- as.character(df$Time)
+  SP <- df$SP_C[df$Time == '2015-03-31']
+}
+
+V <- function(df){
+  df$Time <- as.character(df$Time)
+  V <- df$V_C[df$Time == '2015-03-31']
+}
+
+B <- function(df){
+  df$Time <- as.character(df$Time)
+  B <- df$B_C[df$Time == '2015-03-31']
+}
+
+EPS <- function(df){
+  df$Time <- as.character(df$Time)
+  EPS <- df$EPS_C[df$Time == '2015-03-31']
+}
+
+PE <- function(df){
+  df$Time <- as.character(df$Time)
+  PE <- df$PE_C[df$Time == '2015-03-31']
+}
+
+NAME <- function(df){
+  df$Time <- as.character(df$Time)
+  NAME <- df$StockName[df$Time == '2015-03-31']
+}
+
+EnergyNAME <- NAME(Energy)
+FinancialsNAME <- NAME(Financials)
+ConsumerDiscretionaryNAME <- NAME(ConsumerDiscretionary)
+InformationTechnologyNAME <- NAME(InformationTechnology)
+
+EnergySP <- SP(Energy)
+FinancialsSP <- SP(Financials)
+ConsumerDiscretionarySP <- SP(ConsumerDiscretionary)
+InformationTechnologySP <- SP(InformationTechnology)
+
+EnergyV <- V(Energy)
+FinancialsV <- V(Financials)
+ConsumerDiscretionaryV <- V(ConsumerDiscretionary)
+InformationTechnologyV <- V(InformationTechnology)
+
+EnergyB <- B(Energy)
+FinancialsB <- B(Financials)
+ConsumerDiscretionaryB <- B(ConsumerDiscretionary)
+InformationTechnologyB <- B(InformationTechnology)
+
+EnergyEPS <- EPS(Energy)
+FinancialsEPS <- EPS(Financials)
+ConsumerDiscretionaryEPS <- EPS(ConsumerDiscretionary)
+InformationTechnologyEPS <- EPS(InformationTechnology)
+
+EnergyPE <- PE(Energy)
+FinancialsPE <- PE(Financials)
+ConsumerDiscretionaryPE <- PE(ConsumerDiscretionary)
+InformationTechnologyPE <- PE(InformationTechnology)
+```
+
+### Create table
+```{r}
+Stocks <- c(EnergyNAME, FinancialsNAME, ConsumerDiscretionaryNAME, InformationTechnologyNAME)
+SPs <- c(EnergySP, FinancialsSP, ConsumerDiscretionarySP, InformationTechnologySP)
+Vs <- c(EnergyV, FinancialsV, ConsumerDiscretionaryV, InformationTechnologyV)
+Bs <- c(EnergyB, FinancialsB, ConsumerDiscretionaryB, InformationTechnologyB)
+EPSs <- c(EnergyEPS, FinancialsEPS, ConsumerDiscretionaryEPS, InformationTechnologyEPS)
+PEs <- c(EnergyPE, FinancialsPE, ConsumerDiscretionaryPE, InformationTechnologyPE)
+SumTable <- data.frame(Stocks = Stocks, SPs = SPs, Vs = Vs, Bs = Bs, EPSs = EPSs, PEs = PEs)
+```
+
+### Clustering
+```{r}
+set.seed(00)
+data_scale <- scale(SumTable[2:6])
+data_dist <- dist(data_scale)
+data_average <- hclust(data_dist,method='average')
+kmeans(SumTable[2:6], 5)
+```
+
+### Plot Clustering Results
+```{r}
+library(ggfortify)
+autoplot(kmeans(SumTable[2:6], 5), data = data_scale, label=TRUE, label.size=3, frame=TRUE)
+```
+
+# Determine Stocks
+### First Stock
+```{r}
+ca.distance <- function(x){
+  return((x[1] + 0.0087268953)^2 + (x[2] - 5.11569983)^2 + (x[3] - 0.5787793)^2 + (x[4] - 14.7131779)^2 + (x[5] + 0.009089698)^2)
+}
+result <- NULL
+for (i in (1:2582)){
+  result[i] <- ca.distance(SumTable[i,2:6])
+}
+
+location = 1
+min.value=result[1]
+for (i in 2:2582){
+  if (as.numeric(result[i])<min.value){
+    location=i
+    min.value=result[i]
+  }
+}
+location
+min.value
+
+SumTable[980,]
+```
+
+### Second Stock
+```{r}
+ca.distance <- function(x){
+  return((x[1] - 0.0215762381)^2 + (x[2] - 0.12369282)^2 + (x[3] + 0.3681778)^2 + (x[4] - 1.2316371)^2 + (x[5] - 0.029389332)^2)
+}
+result <- NULL
+for (i in (1:2582)){
+  result[i] <- ca.distance(SumTable[i,2:6])
+}
+
+location = 1
+min.value=result[1]
+for (i in 2:2582){
+  if (as.numeric(result[i])<min.value){
+    location=i
+    min.value=result[i]
+  }
+}
+location
+min.value
+
+SumTable[1103,]
+```
+
+
+### Third Stock
+```{r}
+ca.distance <- function(x){
+  return((x[1] + 0.0008119161)^2 + (x[2] - 0.06563434)^2 + (x[3] - 0.2846815)^2 + (x[4] + 0.2104281)^2 + (x[5] - 0.006860593)^2)
+}
+result <- NULL
+for (i in (1:2582)){
+  result[i] <- ca.distance(SumTable[i,2:6])
+}
+
+location = 1
+min.value=result[1]
+for (i in 2:2582){
+  if (as.numeric(result[i])<min.value){
+    location=i
+    min.value=result[i]
+  }
+}
+location
+min.value
+
+SumTable[1118,]
+```
+
+### Forth Stock
+```{r}
+ca.distance <- function(x){
+  return((x[1] - 0.0559546923)^2 + (x[2] + 0.04004368)^2 + (x[3] + 188.0200428)^2 + (x[4] - 0.9454212)^2 + (x[5] - 0.023996164)^2)
+}
+result <- NULL
+for (i in (1:2582)){
+  result[i] <- ca.distance(SumTable[i,2:6])
+}
+
+location = 1
+min.value=result[1]
+for (i in 2:2582){
+  if (as.numeric(result[i])<min.value){
+    location=i
+    min.value=result[i]
+  }
+}
+location
+min.value
+
+SumTable[1180,]
+```
+
+### Fifth Stock
+```{r}
+ca.distance <- function(x){
+  return((x[1])^2 + (x[2])^2 + (x[3])^2 + (x[4] + 112.0000000)^2 + (x[5])^2)
+}
+result <- NULL
+for (i in (1:2582)){
+  result[i] <- ca.distance(SumTable[i,2:6])
+}
+
+location = 1
+min.value=result[1]
+for (i in 2:2582){
+  if (as.numeric(result[i])<min.value){
+    location=i
+    min.value=result[i]
+  }
+}
+location
+min.value
+
+SumTable[623,]
+```
+
+### Create Variance and Mean Table
+```{r}
+Var1 <- var(Financials$SP_C[FinancialsNAME == 'Ready Capital Corp'])
+Var2 <- var(Financials$SP_C[FinancialsNAME == 'S&T Bancorp Inc'])
+Var3 <- var(Financials$SP_C[FinancialsNAME == 'Solar Senior Capital Ltd'])
+Var4 <- var(Financials$SP_C[FinancialsNAME == '180 Degree Capital Corp'])
+Var5 <- var(Financials$SP_C[FinancialsNAME == 'Investcorp Credit Management BDC Inc'])
+
+Mean1 <- mean(Financials$SP_C[FinancialsNAME == 'Ready Capital Corp'])
+Mean2 <- mean(Financials$SP_C[FinancialsNAME == 'S&T Bancorp Inc'])
+Mean3 <- mean(Financials$SP_C[FinancialsNAME == 'Solar Senior Capital Ltd'])
+Mean4 <- mean(Financials$SP_C[FinancialsNAME == '180 Degree Capital Corp'])
+Mean5 <- mean(Financials$SP_C[FinancialsNAME == 'Investcorp Credit Management BDC Inc'])
+
+Stocks <- c("Ready Capital Corp", "S&T Bancorp Inc", "Solar Senior Capital Ltd ", "180 Degree Capital Corp", "Investcorp Credit Management BDC Inc")
+VAR <- c(Var1, Var2, Var3, Var4, Var5)
+MEAN <- c(Mean1, Mean2, Mean3, Mean4, Mean5)
+
+c <- data.frame(Stocks=Stocks, MEAN=MEAN, VAR=VAR)
+c
+```
+
+### Create Proportion Table
+```{r}
+S11 <- c(1, 0.03, -0.23, 0.18, 0.13)
+S22 <- c(0.03, 1, -0.11, -0.16,0.23)
+S33 <- c(-0.23, -0.11, 1, -0.31, -0.15)
+S44 <- c(0.18, -0.16, -0.31, 1, -0.09)
+S55 <- c(0.13, 0.23, -0.15, -0.09, 1)
+b <- data.frame(S11=S11, S22=S22, S33=S33, S44=S44, S55=S55)
+b
+```
+
+### Calculate Weights
+```{r}
+for (i in 1:5){
+  c[i,2] <- c[i,2]-0.01579/4
+}
+result.weight <- c(0,0,0,0,0)
+result.sharpe <- 0
+for (i in 1:10000){
+  w5 <- runif(1,min=0,max=1)
+  w2 <- runif(1,min=0,max=1-w5)
+  w3 <- runif(1,min=0,max=1-w5-w2)
+  w4 <- runif(1,min=0,max=1-w5-w2-w3)
+  w1 <- runif(1,min=0,max=1-w5-w2-w3-w4)
+  ex.return <- w1*c[1,2]+w2*c[2,2]+w3*c[3,2]+w4*c[4,2]+w5*c[5,2]
+  ex.dev <- ((w1^2)*(c[1,3])^2 + (w2^2)*(c[2,3])^2 + (w3^2)*(c[3,3])^2 + (w4^2)*(c[4,3])^2 + (w5^2)*(c[5,3])^2 +
+               w1*w2*c[1,3]*c[2,3]*b[1,2] + w1*w3*c[1,3]*c[3,3]*b[1,3] + w1*w4*c[1,3]*c[4,3]*b[1,4] + w1*w5*c[1,3]*c[5,3]*b[1,5] + w2*w3*c[2,3]*c[3,3]*b[2,3] + 
+               w2*w4*c[2,3]*c[4,3]*b[2,4] + w2*w5*c[2,3]*c[5,3]*b[2,5] + w3*w4*c[3,3]*c[4,3]*b[3,4] + w3*w5*c[3,3]*c[5,3]*b[3,5] + w4*w5*c[4,3]*c[5,3]*b[4,5])^0.5
+  sharpe <- ex.return/ex.dev
+  if (sharpe > result.sharpe){
+    result.sharpe=sharpe
+    result.weight=c(w1,w2,w3,w4,w5)
+  }
+}
+(ex.return+1)^4
+ex.dev
+result.sharpe
+result.weight
+```
+
+
+
